@@ -16,8 +16,12 @@ var scorelabel;
 //La función sirve para llamar todas las propiedades del juego
 function EmpezarJuego(){
     juegoCanvas.start();
-
     jugador = new crearJugador(30,30,10);
+
+    block = new crearBloque();
+
+    scorelabel = new crearScoreLabel(10,30);
+
 }
 
 //Se clara la variable inicial para el dibujo del canvas, el ancho y el alto de la pantalla
@@ -30,7 +34,6 @@ var juegoCanvas = {
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
 
     }
-
 
 }
 
@@ -50,10 +53,11 @@ function crearJugador(ancho, alto, x){
     
     //Añade gravedad al jugador haciendo que se aumente su caida en 0.1.
     this.caida = function(){
-        this.y += gravedad;
-        gravedad += 0.1;
-
-        this.parar();
+        if(!saltando){
+            this.y += gravedad;
+            gravedad += 0.5;
+            this.parar();
+        }
     }
 
     //Coloca un tope para el jugador, una vez que llegue al suelo se cancela la gravedad.
@@ -67,10 +71,42 @@ function crearJugador(ancho, alto, x){
     this.saltar = function(){
         if(saltando){
             this.y -= velocidadSalto;
-            velocidadSalto += 0.3;
+            velocidadSalto += 0.5;
         }
     }
     
+}
+
+//Función que crea los bloques enemigos con un ancho y alto aleatorio en un mínimo y máximo.
+function crearBloque(){
+    var ancho = numeroAleatorio(10,50);
+    var alto = numeroAleatorio(10,200);
+    var velocidad = numeroAleatorio(2,6);
+
+    this.x = canvasAncho;
+    this.y = canvasAltura - alto;
+
+    this.dibujar = function(){
+        ctx = juegoCanvas.context;
+        ctx.fillStyle = "green";
+        ctx.fillRect(this.x, this.y, ancho, alto);
+    }
+
+    this.atacar = function(){
+        this.x -= velocidad;
+        this.regresarPosicionAtaque();
+    }
+
+    this.regresarPosicionAtaque = function(){
+        if (this.x < 0){
+            ancho = numeroAleatorio(10,50);
+            alto = numeroAleatorio(50,200);
+            velocidad = numeroAleatorio(4,6);
+            this.y = canvasAltura - alto;
+            this.x = canvasAncho;
+            score ++;
+        }
+    }
 }
 
 //Función que actualiza el canvas en función a los movimientos que se van haciendo en la pantalla.
@@ -80,6 +116,42 @@ function actualizarCanvas(){
     jugador.caida();
     jugador.dibujar();
     jugador.saltar();
+
+    block.dibujar();
+    block.atacar();
+
+    scorelabel.text = "SCORE: " + score;
+    scorelabel.dibujar();
+}
+
+//Función que permite la aparición de la puntuación en la pantalla
+function crearScoreLabel(x,y){
+    this.score = 0;
+    this.x = x;
+    this.y = y;
+    this.dibujar = function(){
+        ctx = juegoCanvas.context;
+        ctx.font = "25px Consolas";
+        ctx.fillStyle = "black";
+        ctx.fillText(this.text, this.x, this.y)
+
+    }
+
+}
+
+//Función que detecta si el jugador esta chocando con el bloque.
+function detectarColision(){
+    var jugadorIzquierda = jugador.x;
+    var jugadorDerecha = jugador.x + jugador.width;
+    var blockIzquierda = block.x;
+    var blockDerecha = block.x + block.width;
+
+    var jugadorFondo = jugador.y + jugador.alto;
+    var blockCima = block.y;
+
+    if(jugadorDerecha > blockIzquierda && jugadorIzquierda < blockIzquierda && jugadorFondo > blockCima){
+        juegoCanvas.stop();
+    }
 }
 
 //Se genera un número aleatorio para la aparición de los bloques
@@ -95,7 +167,7 @@ function actualizarSalto(){
 
 //Se asigna la tecla que se usará el up arrow key
 document.body.onkeyup = function(e){
-    if(e.keyCode == 38){
+    if(e.keyCode == 36){
         saltando = true;
         setTimeout(function() {actualizarSalto();},1000);
     }
