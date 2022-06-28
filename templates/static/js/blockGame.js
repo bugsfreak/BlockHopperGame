@@ -39,8 +39,8 @@ var juegoCanvas = {
 
 //Función que crea el jugador colocando el ancho y alto del cuadrado así como su posición inicial el x.
 function crearJugador(ancho, alto, x){
-    this.width = ancho;
-    this.height = alto;
+    this.ancho = ancho;
+    this.alto = alto;
     this.x = x;
     this.y = posicionYjugador;
 
@@ -48,21 +48,21 @@ function crearJugador(ancho, alto, x){
     this.dibujar = function(){
         ctx = juegoCanvas.context;
         ctx.fillStyle = "black";
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillRect(this.x, this.y, this.ancho, this.alto);
     }
     
     //Añade gravedad al jugador haciendo que se aumente su caida en 0.1.
     this.caida = function(){
         if(!saltando){
             this.y += gravedad;
-            gravedad += 0.5;
+            gravedad += 0.3;
             this.parar();
         }
     }
 
     //Coloca un tope para el jugador, una vez que llegue al suelo se cancela la gravedad.
     this.parar = function(){
-        var suelo = canvasAltura - this.height;
+        var suelo = canvasAltura - this.alto;
         if(this.y > suelo){
             this.y = suelo;
         }
@@ -71,7 +71,7 @@ function crearJugador(ancho, alto, x){
     this.saltar = function(){
         if(saltando){
             this.y -= velocidadSalto;
-            velocidadSalto += 0.5;
+            velocidadSalto += 0.3;
         }
     }
     
@@ -111,6 +111,8 @@ function crearBloque(){
 
 //Función que actualiza el canvas en función a los movimientos que se van haciendo en la pantalla.
 function actualizarCanvas(){
+    detectarColision();
+
     ctx = juegoCanvas.context;
     ctx.clearRect(0,0,canvasAncho,canvasAltura);
     jugador.caida();
@@ -142,9 +144,9 @@ function crearScoreLabel(x,y){
 //Función que detecta si el jugador esta chocando con el bloque.
 function detectarColision(){
     var jugadorIzquierda = jugador.x;
-    var jugadorDerecha = jugador.x + jugador.width;
+    var jugadorDerecha = jugador.x + jugador.ancho;
     var blockIzquierda = block.x;
-    var blockDerecha = block.x + block.width;
+    //var blockDerecha = block.x + block.ancho;
 
     var jugadorFondo = jugador.y + jugador.alto;
     var blockCima = block.y;
@@ -167,7 +169,7 @@ function actualizarSalto(){
 
 //Se asigna la tecla que se usará el up arrow key
 document.body.onkeyup = function(e){
-    if(e.keyCode == 36){
+    if(e.keyCode == 38){
         saltando = true;
         setTimeout(function() {actualizarSalto();},1000);
     }
